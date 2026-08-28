@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8">
+        <title>Notes</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='dayone.css') }}">
+        <script src="{{ url_for('static', filename='dayone.js') }}" defer></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1 id="header">My notes</h1>
+            <div class="note_input">
+                <textarea type="text" id="note_input" placeholder="Start typing!"></textarea>
+                <button id="add_note" class="button">Save note</button>
+                <button id="clear_notes" class="button">Clear notes</button>
+                <button id="log_out" class="button"> Log out</button>
+            </div>
+            <div id="note_container">
+
+            </div>
+        </div>
+    </body>
+</html> <!-- all self explanatory -->

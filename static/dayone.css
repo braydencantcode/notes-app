@@ -1,0 +1,61 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f5;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 500px;
+    background-color: white;
+
+    padding: 30px;
+    border-radius: 12px;
+
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.container2 {
+    width: 700px;
+    background-color: white;
+
+    padding: 30px;
+    border-radius: 12px;
+
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.note_input {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+#note_input {
+    min-height: 50px;
+    resize: vertical;
+}
+
+
+#header {
+    text-align: center;
+    color: #222;
+    margin-top: 0;
+}
+
+.button {
+    padding: 14px 25px;
+    border: none;
+    border-radius: 999px;
+    background-color: #2097ff;
+    color: white;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
