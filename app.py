@@ -19,6 +19,12 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
+    connection.execute("""CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    )""")
     connection.commit()
     connection.close()
 
@@ -40,28 +46,57 @@ def index():
 
 @app.route("/notes", methods=["GET"])
 def get_notes():
-    return jsonify(notes)
+    user_id = session.get("user_id")
+    connection = get_db_connection()
+    your_notes = connection.execute("SELECT text FROM notes WHERE user_id = ?", (user_id,)).fetchall()
+    connection.close()
+    notes_list = [row["text"] for row in your_notes]
+    return jsonify(notes_list)
 
 @app.route("/notes", methods=["POST"])
 def add_note():
+    user_id = session.get("user_id")
     data = request.get_json()
     text = data.get("text", "")
-    notes.insert(0, text)
+
+    connection = get_db_connection()
+    connection.execute(
+        "INSERT INTO notes (user_id, text) VALUES (?, ?)",
+        (user_id, text)
+    )
+    connection.commit()
+    connection.close()
     return jsonify({"success": True}), 201
 
 @app.route("/notes", methods=["DELETE"])
 def clear_notes():
-    notes.clear()
+    user_id = session.get("user_id")
+    connection = get_db_connection()
+    connection.execute("DELETE FROM notes WHERE user_id = ?", (user_id,))
+    connection.commit()
+    connection.close()
     return jsonify({"success": True}), 200
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
+        username = request.form.get("username").strip().casefold()
         password = request.form.get("password")
 
-        # fill in later
+        connection = get_db_connection()
+        user = connection.execute(
+            "SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        connection.commit()
+        connection.close()
 
+        if user is not None and user["password"] == password:
+            session["logged in"] = True
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            return redirect(url_for("index"))
+        else:
+            return render_template("login.html", error="Wrong username or password")
+        
     return render_template("login.html")
 
 @app.route("/logout", methods=["POST"])
@@ -72,7 +107,7 @@ def logout():
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    username = data.get("username", "")
+    username = data.get("username", "").strip().casefold()
     password = data.get("password", "")
 
     if username_exists(username):
@@ -89,6 +124,11 @@ def signup():
     print(f"successful account creation with username: {username} and password: {password}") # this line is for debugging
     return jsonify({"success": True}), 201
     
+@app.route("/whoami")
+def whoami():
+    if not session.get("logged in"):
+        return jsonify({"username": None}), 401
+    return jsonify({"username": session.get("username")})
 
 if __name__ == "__main__":
     app.run(debug=True)

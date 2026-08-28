@@ -4,6 +4,8 @@ const clear_notes_button = document.getElementById("clear_notes");
 const log_out_button = document.getElementById("log_out");
 const container = document.getElementById("note_container");
 const sign_up_button = document.getElementById("sign_up");
+const header = document.getElementById("header");
+const dark_mode_button = document.getElementById("dark_mode");
 
 async function load_notes() {
     const response = await fetch("/notes");
@@ -30,7 +32,7 @@ async function add_note_button_pressed() {
     container.prepend(note);
 
     input.value = "";
-    input.setAttribute("placeholder", "Add another note!");
+    input.setAttribute("placeholder", "Start typing!");
 }
 
 async function clear_notes_button_pressed() {
@@ -65,6 +67,17 @@ async function sign_up_button_pressed() {
 
 }
 
+async function set_username() {
+    const response = await fetch("/whoami", {method: "GET",})
+    const data = await response.json();
+    const username = data.username
+    header.textContent = `${username}'s notes`;
+}
+
+function dark_mode_button_pressed() {
+    document.body.classList.toggle("dark_mode");
+}
+
 if (add_note_button) {
     add_note_button.addEventListener("click", add_note_button_pressed)
 }
@@ -77,7 +90,11 @@ if (log_out_button) {
 if (sign_up_button) {
     sign_up_button.addEventListener("click", sign_up_button_pressed)
 }
+if (dark_mode_button) {
+    dark_mode_button.addEventListener("click", dark_mode_button_pressed)
+}
 
 if (container) {
     load_notes()
+    set_username()
 }
