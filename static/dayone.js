@@ -7,32 +7,51 @@ const sign_up_button = document.getElementById("sign_up");
 const header = document.getElementById("header");
 const dark_mode_button = document.getElementById("dark_mode");
 
+function this_creates_note_elements_hai(note) {
+    
+    const delete_button = document.createElement("button");
+    delete_button.className = "delete_button";
+    delete_button.setAttribute("data-note_id", note.id);
+    delete_button.textContent = "❌";
+    container.prepend(delete_button);
+    
+    const note_text = document.createElement("p");
+    note_text.textContent = note.text;
+    container.prepend(note_text);
+
+    delete_button.addEventListener("click", async function() {
+        const note_id = delete_button.getAttribute("data-note_id");
+        await fetch(`/notes/${note_id}`, { method: "DELETE" });
+        note_text.remove();
+        delete_button.remove();
+    });
+}
+
 async function load_notes() {
     const response = await fetch("/notes");
     const notes = await response.json();
 
-    notes.forEach(text => {
-        const note = document.createElement("p");
-        note.textContent = text;
-        container.appendChild(note);
+    notes.forEach(note => {
+        this_creates_note_elements_hai(note);
     });
 }
 
 async function add_note_button_pressed() {
-    const text = input.value;
+    const text = input.value.trim();
 
-    await fetch("/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text })
-    });
+    if (text != "") {
+        const response = await fetch("/notes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: text })
+        });
 
-    const note = document.createElement("p");
-    note.textContent = text;
-    container.prepend(note);
+        const new_note = await response.json();
+        this_creates_note_elements_hai(new_note);
 
-    input.value = "";
-    input.setAttribute("placeholder", "Start typing!");
+        input.value = "";
+        input.setAttribute("placeholder", "Start typing!");
+    }
 }
 
 async function clear_notes_button_pressed() {

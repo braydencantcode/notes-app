@@ -108,5 +108,33 @@ body.dark_mode .container {
 }
 
 body.dark_mode #header {
-    color: white
+    color: white;
+}
+
+#build_version {
+    position: fixed;
+    bottom: 5px; /* lowkey misaligned but looks ok enough */
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color:rgba(31, 31, 31, 0.1) /* make this darker */
+
+}
+
+.delete_button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.65;
+    transition: opacity 0.15s ease;
+}
+
+.delete_button:hover {
+    opacity: 1;
 }

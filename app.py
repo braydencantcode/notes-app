@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 
 notes = []
@@ -48,9 +49,9 @@ def index():
 def get_notes():
     user_id = session.get("user_id")
     connection = get_db_connection()
-    your_notes = connection.execute("SELECT text FROM notes WHERE user_id = ?", (user_id,)).fetchall()
+    your_notes = connection.execute("SELECT id, text FROM notes WHERE user_id = ?", (user_id,)).fetchall()
     connection.close()
-    notes_list = [row["text"] for row in your_notes]
+    notes_list = [{"id": row["id"], "text": row["text"]} for row in your_notes]
     return jsonify(notes_list)
 
 @app.route("/notes", methods=["POST"])
@@ -60,19 +61,29 @@ def add_note():
     text = data.get("text", "")
 
     connection = get_db_connection()
-    connection.execute(
+    cursor = connection.execute(
         "INSERT INTO notes (user_id, text) VALUES (?, ?)",
         (user_id, text)
     )
+    new_id = cursor.lastrowid
     connection.commit()
     connection.close()
-    return jsonify({"success": True}), 201
+    return jsonify({"id": new_id, "text": text}), 201
 
 @app.route("/notes", methods=["DELETE"])
 def clear_notes():
     user_id = session.get("user_id")
     connection = get_db_connection()
     connection.execute("DELETE FROM notes WHERE user_id = ?", (user_id,))
+    connection.commit()
+    connection.close()
+    return jsonify({"success": True}), 200
+
+@app.route("/notes/<int:note_id>", methods=["DELETE"])
+def delete_note(note_id):
+    user_id = session.get("user_id")
+    connection = get_db_connection()
+    connection.execute("DELETE FROM notes WHERE id = ? AND user_id = ?", (note_id, user_id,))
     connection.commit()
     connection.close()
     return jsonify({"success": True}), 200
@@ -85,11 +96,12 @@ def login():
 
         connection = get_db_connection()
         user = connection.execute(
-            "SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+            "SELECT * FROM users WHERE username = ?", (username,)
+            ).fetchone()
         connection.commit()
         connection.close()
 
-        if user is not None and user["password"] == password:
+        if user is not None and check_password_hash(user["password"], password):
             session["logged in"] = True
             session["user_id"] = user["id"]
             session["username"] = user["username"]
@@ -110,13 +122,15 @@ def signup():
     username = data.get("username", "").strip().casefold()
     password = data.get("password", "")
 
+    hashed_password = generate_password_hash(password)
+
     if username_exists(username):
         return jsonify({"error": "Username already taken"}), 409
 
     connection = get_db_connection()
     connection.execute(
         "INSERT INTO users (username, password) VALUES (?, ?)",
-        (username, password)
+        (username, hashed_password)
     )
     connection.commit()
     connection.close()
